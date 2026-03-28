@@ -21,7 +21,7 @@ adm_header('Settings');
 ?>
 <h2 style="margin-bottom:16px">Settings</h2>
 <div class="tabs">
-<?php foreach (['general' => 'General', 'comments' => 'Comments', 'users' => 'Users', 'email' => 'Email', 'seo' => 'SEO'] as $k => $v): ?>
+<?php foreach (['general' => 'General', 'reading' => 'Reading', 'comments' => 'Comments', 'users' => 'Users', 'email' => 'Email', 'seo' => 'SEO'] as $k => $v): ?>
 <a href="<?= adm('settings?tab=' . $k) ?>" class="<?= $tab === $k ? 'active' : '' ?>"><?= $v ?></a>
 <?php endforeach; ?>
 </div>
@@ -33,9 +33,49 @@ adm_header('Settings');
 <div class="fg"><label>Site Name</label><input type="text" name="s[site_name]" class="fc" value="<?= e(Setting::get('site_name')) ?>"></div>
 <div class="fg"><label>Tagline</label><input type="text" name="s[site_tagline]" class="fc" value="<?= e(Setting::get('site_tagline')) ?>"></div>
 <div class="fg"><label>Description</label><textarea name="s[site_description]" class="fc" style="min-height:60px"><?= e(Setting::get('site_description')) ?></textarea></div>
-<div class="fg"><label>Posts Per Page</label><input type="number" name="s[posts_per_page]" class="fc" value="<?= e(Setting::get('posts_per_page', '10')) ?>" min="1"></div>
 <div class="fg"><label>Timezone</label><input type="text" name="s[timezone]" class="fc" value="<?= e(Setting::get('timezone', 'UTC')) ?>"></div>
 <div class="fg"><label>Date Format</label><input type="text" name="s[date_format]" class="fc" value="<?= e(Setting::get('date_format', 'M d, Y')) ?>"></div>
+</div></div>
+
+<?php elseif ($tab === 'reading'):
+    $frontPageType = Setting::get('front_page', 'posts');
+    $frontPageId   = Setting::get('front_page_id', '');
+    $allPages      = DB::rows("SELECT id, title FROM " . DB::t('pages') . " WHERE status = 'published' ORDER BY title");
+    $blogPageId    = Setting::get('blog_page_id', '');
+?>
+<div class="panel"><div class="panel-hd">Homepage Display</div><div class="panel-bd">
+    <div class="fg">
+        <label>Your homepage displays</label>
+        <select name="s[front_page]" class="fc" id="fp-type" onchange="document.getElementById('fp-opts').style.display=this.value==='page'?'':'none'">
+            <option value="posts" <?= $frontPageType === 'posts' ? 'selected' : '' ?>>Your latest posts</option>
+            <option value="page" <?= $frontPageType === 'page' ? 'selected' : '' ?>>A static page</option>
+        </select>
+    </div>
+    <div id="fp-opts" style="<?= $frontPageType !== 'page' ? 'display:none' : '' ?>">
+        <div class="fg">
+            <label>Homepage</label>
+            <select name="s[front_page_id]" class="fc">
+                <option value="">— Select —</option>
+                <?php foreach ($allPages as $p): ?>
+                <option value="<?= $p['id'] ?>" <?= $frontPageId == $p['id'] ? 'selected' : '' ?>><?= e($p['title']) ?></option>
+                <?php endforeach; ?>
+            </select>
+            <p class="hint">This page will be shown on your homepage.</p>
+        </div>
+        <div class="fg">
+            <label>Posts page</label>
+            <select name="s[blog_page_id]" class="fc">
+                <option value="">— None (blog disabled on navigation) —</option>
+                <?php foreach ($allPages as $p): ?>
+                <option value="<?= $p['id'] ?>" <?= $blogPageId == $p['id'] ? 'selected' : '' ?>><?= e($p['title']) ?></option>
+                <?php endforeach; ?>
+            </select>
+            <p class="hint">Optional. If set, this page's URL will show your blog post listing instead of its own content.</p>
+        </div>
+    </div>
+</div></div>
+<div class="panel"><div class="panel-bd">
+    <div class="fg"><label>Posts Per Page</label><input type="number" name="s[posts_per_page]" class="fc" value="<?= e(Setting::get('posts_per_page', '10')) ?>" min="1"></div>
 </div></div>
 
 <?php elseif ($tab === 'comments'): ?>

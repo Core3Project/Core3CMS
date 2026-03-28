@@ -1,8 +1,61 @@
 <?php
 
 defined('C3_ROOT') || exit;
-class BlogController {
-    public function index(int $page = 1): void {
+
+/**
+ * Blog controller
+ *
+ * Handles the homepage, post listing, single post view,
+ * and category pages on the public site.
+ */
+class BlogController
+{
+    /**
+     * Show the homepage
+     *
+     * Checks the 'front_page' setting to determine whether to
+     * display the latest posts or a static page.
+     *
+     * @param int $page pagination offset
+     *
+     * @return void
+     */
+    public function index($page = 1)
+    {
+        $page = max(1, (int) $page);
+
+        // static front page — only on page 1 (pagination still shows posts)
+        if ($page === 1 && Setting::get('front_page', 'posts') === 'page') {
+            $pageId = (int) Setting::get('front_page_id', '0');
+
+            if ($pageId) {
+                $staticPage = DB::row(
+                    "SELECT * FROM " . DB::t('pages') . " WHERE id = ? AND status = 'published'",
+                    [$pageId]
+                );
+
+                if ($staticPage) {
+                    Theme::render('page', [
+                        'page'      => $staticPage,
+                        'pageTitle' => $staticPage['title'],
+                    ]);
+                    return;
+                }
+            }
+        }
+
+        $this->showPosts($page);
+    }
+
+    /**
+     * Display the paginated post listing
+     *
+     * @param int $page
+     *
+     * @return void
+     */
+    private function showPosts($page)
+    {
         $t = DB::t('posts'); $tu = DB::t('users'); $tc = DB::t('categories'); $tcm = DB::t('comments');
         $pp = (int) Setting::get('posts_per_page', '10');
         $total = DB::count($t, "status='published'");
@@ -14,7 +67,15 @@ class BlogController {
         Theme::render('blog/index', compact('posts', 'pag'));
     }
 
-    public function single(string $slug): void {
+    /**
+     * Show a single published post
+     *
+     * @param string $slug
+     *
+     * @return void
+     */
+    public function single($slug)
+    {
         $t = DB::t('posts'); $tu = DB::t('users'); $tc = DB::t('categories');
         $post = DB::row("SELECT p.*, u.display_name as author_name, u.bio as author_bio, c.name as cat_name, c.slug as cat_slug
             FROM $t p LEFT JOIN $tu u ON p.author_id=u.id LEFT JOIN $tc c ON p.category_id=c.id
@@ -33,7 +94,7 @@ class BlogController {
         Theme::render('blog/single', compact('post', 'comments', 'commentMsg'));
     }
 
-    private function handleComment(int $postId): array {
+    private function handleComment($postId) {
         // Honeypot check
         if ( ! empty($_POST['_hp'])) return ['type' => 'success', 'msg' => 'Thanks!'];
 
@@ -61,7 +122,7 @@ class BlogController {
         return ['type' => 'success', 'msg' => $status === 'pending' ? 'Comment awaiting moderation.' : 'Comment posted!'];
     }
 
-    public function category(string $slug, int $page = 1): void {
+    public function category($slug, $page = 1) {
         $cat = DB::row("SELECT * FROM " . DB::t('categories') . " WHERE slug=?", [$slug]);
         if ( ! $cat) { http_response_code(404); Theme::render('404', ['pageTitle' => 'Not Found']); return; }
 
