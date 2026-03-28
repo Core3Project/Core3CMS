@@ -1,26 +1,33 @@
 <?php
+
+defined('C3_ROOT') || exit;
+
 /**
- * Authentication and user management.
+ * Authentication
  *
- * Handles login, logout, registration, password resets,
- * CSRF tokens, and role-based access control.
- *
- * @package Core3
+ * Handles login, registration, password resets, session
+ * management, CSRF tokens, and role-based access control.
  */
 class Auth
 {
     /**
-     * Attempt to log in with the given credentials.
+     * Attempt to log in with the given credentials
+     *
+     * @param string $login    username or email
+     * @param string $password plaintext password
+     *
+     * @return bool
      */
     public static function login($login, $password)
     {
         $table = DB::t('users');
-        $user  = DB::row(
+
+        $user = DB::row(
             "SELECT * FROM {$table} WHERE (username = ? OR email = ?) AND status = 'active'",
             [$login, $login]
         );
 
-        if (!$user || !password_verify($password, $user['password'])) {
+        if ( !  $user || ! password_verify($password, $user['password'])) {
             return false;
         }
 
@@ -33,15 +40,26 @@ class Auth
     }
 
     /**
-     * Register a new user account.
+     * Register a new user account
      *
-     * Returns true on success or an error string on failure.
+     * @param string $username
+     * @param string $email
+     * @param string $password
+     * @param string $displayName
+     * @param string $role
+     *
+     * @return true|string true on success, error message on failure
      */
     public static function register($username, $email, $password, $displayName = '', $role = 'subscriber')
     {
         $table = DB::t('users');
 
-        if (DB::row("SELECT id FROM {$table} WHERE username = ? OR email = ?", [$username, $email])) {
+        $exists = DB::row(
+            "SELECT id FROM {$table} WHERE username = ? OR email = ?",
+            [$username, $email]
+        );
+
+        if ($exists) {
             return 'Username or email already taken.';
         }
 
@@ -58,7 +76,9 @@ class Auth
     }
 
     /**
-     * Destroy the current session.
+     * Destroy the current session
+     *
+     * @return void
      */
     public static function logout()
     {
@@ -66,7 +86,9 @@ class Auth
     }
 
     /**
-     * Check whether a user is currently logged in.
+     * Check whether a user is logged in
+     *
+     * @return bool
      */
     public static function check()
     {
@@ -74,7 +96,9 @@ class Auth
     }
 
     /**
-     * Get the current user's ID or null.
+     * Return the current user ID
+     *
+     * @return int|null
      */
     public static function id()
     {
@@ -82,7 +106,9 @@ class Auth
     }
 
     /**
-     * Get the current user's role.
+     * Return the current user role
+     *
+     * @return string
      */
     public static function role()
     {
@@ -90,114 +116,168 @@ class Auth
     }
 
     /**
-     * Fetch the full user row for the logged-in user.
+     * Fetch the full user record for the logged-in user
+     *
+     * @return array|null
      */
     public static function user()
     {
-        if (!self::check()) {
+        if ( !  self::check()) {
             return null;
         }
-        return DB::row("SELECT * FROM " . DB::t('users') . " WHERE id = ?", [self::id()]);
+
+        return DB::row(
+            "SELECT * FROM " . DB::t('users') . " WHERE id = ?",
+            [self::id()]
+        );
     }
 
     /**
-     * Require the user to be logged in, optionally with specific roles.
+     * Require the visitor to be logged in
      *
-     * Redirects to the login page if unauthenticated. Shows an
-     * access-denied message if the user lacks the required role.
+     * Pass one or more role names to restrict access further.
+     * Redirects to the login page or shows an access-denied
+     * message as appropriate.
+     *
+     * @return void
      */
     public static function guard()
     {
         $roles = func_get_args();
 
-        if (!self::check()) {
-            $adminDir = dirname($_SERVER['SCRIPT_NAME']);
-            header('Location: ' . $adminDir . '/login');
+        if ( !  self::check()) {
+            $dir = dirname($_SERVER['SCRIPT_NAME']);
+            header('Location: ' . $dir . '/login');
             exit;
         }
 
-        if ($roles && !in_array(self::role(), $roles)) {
-            $adminDir = dirname($_SERVER['SCRIPT_NAME']);
+        if ($roles && ! in_array(self::role(), $roles)) {
+            $dir = dirname($_SERVER['SCRIPT_NAME']);
             http_response_code(403);
-            die('<h2>Access Denied</h2><p>You do not have permission to view this page.</p>'
-                . '<p><a href="' . $adminDir . '/">Back to dashboard</a></p>');
+            die(
+                '<h2>Access Denied</h2>'
+                . '<p>You do not have permission to view this page.</p>'
+                . '<p><a href="' . $dir . '/">Back to dashboard</a></p>'
+            );
         }
     }
 
+    /**
+     * @return bool
+     */
     public static function isAdmin()
     {
         return self::role() === 'admin';
     }
 
+    /**
+     * @return bool
+     */
     public static function canEdit()
     {
         return in_array(self::role(), ['admin', 'editor']);
     }
 
+    /**
+     * @return bool
+     */
     public static function canWrite()
     {
         return in_array(self::role(), ['admin', 'editor', 'author']);
     }
 
+    // ----- CSRF -----
+
     /**
-     * Get or generate a CSRF token for the current session.
+     * Get or generate a CSRF token for the session
+     *
+     * @return string
      */
     public static function csrf()
     {
         if (empty($_SESSION['_csrf'])) {
             $_SESSION['_csrf'] = bin2hex(random_bytes(32));
         }
+
         return $_SESSION['_csrf'];
     }
 
     /**
-     * Validate a submitted CSRF token.
+     * Verify a submitted CSRF token
+     *
+     * @param string $token
+     *
+     * @return bool
      */
     public static function checkCsrf($token)
     {
-        return isset($_SESSION['_csrf']) && hash_equals($_SESSION['_csrf'], $token);
+        return isset($_SESSION['_csrf'])
+            && hash_equals($_SESSION['_csrf'], $token);
     }
 
     /**
-     * Render a hidden CSRF input field.
+     * Render a hidden CSRF form field
+     *
+     * @return string
      */
     public static function csrfField()
     {
         return '<input type="hidden" name="_csrf" value="' . self::csrf() . '">';
     }
 
+    // ----- Password reset -----
+
     /**
-     * Generate a password-reset token for the given email.
+     * Generate a password-reset token for an email address
      *
-     * Returns an array with the user and token, or null if the email
-     * does not match an active account.
+     * @param string $email
+     *
+     * @return array|null array with 'user' and 'token', or null
      */
     public static function createResetToken($email)
     {
         $table = DB::t('users');
-        $user  = DB::row("SELECT * FROM {$table} WHERE email = ? AND status = 'active'", [$email]);
 
-        if (!$user) {
+        $user = DB::row(
+            "SELECT * FROM {$table} WHERE email = ? AND status = 'active'",
+            [$email]
+        );
+
+        if ( !  $user) {
             return null;
         }
 
         $token   = bin2hex(random_bytes(32));
         $expires = date('Y-m-d H:i:s', strtotime('+1 hour'));
 
-        DB::update($table, ['reset_token' => $token, 'reset_expires' => $expires], 'id = ?', [$user['id']]);
+        DB::update(
+            $table,
+            ['reset_token' => $token, 'reset_expires' => $expires],
+            'id = ?',
+            [$user['id']]
+        );
 
         return ['user' => $user, 'token' => $token];
     }
 
     /**
-     * Consume a reset token and set the new password.
+     * Consume a reset token and set a new password
+     *
+     * @param string $token
+     * @param string $password plaintext
+     *
+     * @return bool
      */
     public static function resetPassword($token, $password)
     {
         $table = DB::t('users');
-        $user  = DB::row("SELECT * FROM {$table} WHERE reset_token = ? AND reset_expires > NOW()", [$token]);
 
-        if (!$user) {
+        $user = DB::row(
+            "SELECT * FROM {$table} WHERE reset_token = ? AND reset_expires > NOW()",
+            [$token]
+        );
+
+        if ( !  $user) {
             return false;
         }
 

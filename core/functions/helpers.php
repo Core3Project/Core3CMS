@@ -1,23 +1,36 @@
 <?php
+
+defined('C3_ROOT') || exit;
+
 /**
- * Template and utility functions.
+ * Template and utility helpers
  *
- * Short, globally-available helpers used by templates, controllers,
- * and admin pages throughout Core 3 CMS.
- *
- * @package Core3
+ * Short, globally-available functions used across templates,
+ * controllers, and admin pages.
  */
 
 /**
- * Escape a string for safe HTML output.
+ * Escape a string for safe HTML output
+ *
+ * @param string|null $string
+ *
+ * @return string
  */
 function e($string)
 {
-    return htmlspecialchars($string !== null ? $string : '', ENT_QUOTES, 'UTF-8');
+    return htmlspecialchars(
+        $string !== null ? $string : '',
+        ENT_QUOTES,
+        'UTF-8'
+    );
 }
 
 /**
- * Generate a full URL relative to the site root.
+ * Generate a full URL relative to the site root
+ *
+ * @param string $path
+ *
+ * @return string
  */
 function url($path = '')
 {
@@ -25,59 +38,88 @@ function url($path = '')
 }
 
 /**
- * Convert a string to a URL-safe slug.
+ * Convert a string to a URL-safe slug
+ *
+ * @param string $text
+ *
+ * @return string
  */
 function slugify($text)
 {
     $text = preg_replace('~[^\pL\d]+~u', '-', $text);
     $text = iconv('utf-8', 'us-ascii//TRANSLIT', $text);
     $text = preg_replace('~[^-\w]+~', '', $text);
+
     return strtolower(trim(preg_replace('~-+~', '-', $text), '-'));
 }
 
 /**
- * Strip HTML tags and truncate to a given length.
+ * Strip HTML and truncate to a given length
+ *
+ * @param string $html
+ * @param int    $length
+ *
+ * @return string
  */
 function excerpt($html, $length = 200)
 {
     $text = strip_tags($html);
+
     if (mb_strlen($text) <= $length) {
         return $text;
     }
-    return mb_substr($text, 0, $length) . '…';
+
+    return mb_substr($text, 0, $length) . "\xE2\x80\xA6";
 }
 
 /**
- * Format a datetime string using the site's configured date format.
+ * Format a datetime using the configured date format
+ *
+ * @param string|null $datetime
+ * @param string      $format   override the site setting
+ *
+ * @return string
  */
 function formatDate($datetime, $format = '')
 {
-    if (!$datetime) {
+    if ( ! $datetime) {
         return '';
     }
-    if (!$format) {
+
+    if ( ! $format) {
         $format = Setting::get('date_format', 'M d, Y');
     }
+
     return date($format, strtotime($datetime));
 }
 
 /**
- * Display a datetime as a relative time string (e.g. "3h ago").
+ * Express a datetime as a relative time string
+ *
+ * @param string $datetime
+ *
+ * @return string
  */
 function timeAgo($datetime)
 {
-    $diff = time() - strtotime($datetime);
+    $seconds = time() - strtotime($datetime);
 
-    if ($diff < 60)    return 'just now';
-    if ($diff < 3600)  return floor($diff / 60) . 'm ago';
-    if ($diff < 86400) return floor($diff / 3600) . 'h ago';
-    if ($diff < 604800) return floor($diff / 86400) . 'd ago';
+    if ($seconds < 60)     return 'just now';
+    if ($seconds < 3600)   return floor($seconds / 60) . 'm ago';
+    if ($seconds < 86400)  return floor($seconds / 3600) . 'h ago';
+    if ($seconds < 604800) return floor($seconds / 86400) . 'd ago';
 
     return date('M d, Y', strtotime($datetime));
 }
 
 /**
- * Calculate pagination metadata.
+ * Build pagination metadata
+ *
+ * @param int $total
+ * @param int $perPage
+ * @param int $currentPage
+ *
+ * @return array
  */
 function paginate($total, $perPage, $currentPage)
 {
@@ -94,7 +136,12 @@ function paginate($total, $perPage, $currentPage)
 }
 
 /**
- * Store a flash message in the session.
+ * Store a flash message in the session
+ *
+ * @param string $type success, error, info, warning
+ * @param string $msg
+ *
+ * @return void
  */
 function flash($type, $msg)
 {
@@ -102,38 +149,46 @@ function flash($type, $msg)
 }
 
 /**
- * Retrieve and clear the flash message.
+ * Retrieve and clear the flash message
+ *
+ * @return array|null
  */
 function getFlash()
 {
     $flash = isset($_SESSION['_flash']) ? $_SESSION['_flash'] : null;
     unset($_SESSION['_flash']);
+
     return $flash;
 }
 
 /**
- * Handle an image upload.
+ * Handle an image file upload
  *
- * Returns an array with 'ok' and 'file' on success,
- * or 'error' on failure.
+ * @param array  $file the $_FILES entry
+ * @param string $dir  target directory relative to C3_ROOT
+ *
+ * @return array ['ok' => true, 'file' => path] or ['error' => message]
  */
 function uploadImage($file, $dir = 'content/uploads')
 {
-    $allowed = ['image/jpeg', 'image/png', 'image/gif', 'image/webp', 'image/svg+xml'];
+    $allowed = [
+        'image/jpeg', 'image/png', 'image/gif',
+        'image/webp', 'image/svg+xml',
+    ];
 
-    if (!in_array($file['type'], $allowed)) {
+    if ( ! in_array($file['type'], $allowed)) {
         return ['error' => 'Invalid file type.'];
     }
 
     if ($file['size'] > 5 * 1024 * 1024) {
-        return ['error' => 'File exceeds 5MB limit.'];
+        return ['error' => 'File exceeds 5 MB limit.'];
     }
 
     $ext      = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
     $filename = bin2hex(random_bytes(8)) . '.' . $ext;
-    $destPath = C3_ROOT . '/' . $dir . '/' . $filename;
+    $dest     = C3_ROOT . '/' . $dir . '/' . $filename;
 
-    if (!move_uploaded_file($file['tmp_name'], $destPath)) {
+    if ( ! move_uploaded_file($file['tmp_name'], $dest)) {
         return ['error' => 'Upload failed. Check directory permissions.'];
     }
 
@@ -141,7 +196,12 @@ function uploadImage($file, $dir = 'content/uploads')
 }
 
 /**
- * Render a pagination navigation bar.
+ * Render a pagination navigation bar
+ *
+ * @param array  $pag     output from paginate()
+ * @param string $baseUrl URL prefix for page links
+ *
+ * @return string
  */
 function renderPagination($pag, $baseUrl)
 {
@@ -151,12 +211,14 @@ function renderPagination($pag, $baseUrl)
 
     $html = '<nav class="pagination" aria-label="Pagination">';
 
+    // previous link
     if ($pag['page'] > 1) {
         $prev = $pag['page'] - 1;
         $href = $baseUrl . ($prev > 1 ? '/' . $prev : '');
         $html .= '<a href="' . $href . '" class="pg-link">&larr; Prev</a>';
     }
 
+    // numbered links
     for ($i = 1; $i <= $pag['pages']; $i++) {
         $href = $baseUrl . ($i > 1 ? '/' . $i : '');
 
@@ -167,8 +229,10 @@ function renderPagination($pag, $baseUrl)
         }
     }
 
+    // next link
     if ($pag['page'] < $pag['pages']) {
-        $html .= '<a href="' . $baseUrl . '/' . ($pag['page'] + 1) . '" class="pg-link">Next &rarr;</a>';
+        $href = $baseUrl . '/' . ($pag['page'] + 1);
+        $html .= '<a href="' . $href . '" class="pg-link">Next &rarr;</a>';
     }
 
     $html .= '</nav>';

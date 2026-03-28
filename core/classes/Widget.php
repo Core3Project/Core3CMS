@@ -1,124 +1,103 @@
 <?php
+
+defined('C3_ROOT') || exit;
 /**
- * Widget system.
- *
- * Widgets are small content blocks placed in zones (sidebar, footer).
- * Built-in types include recent posts, categories, search, custom HTML,
- * and recent comments. Modules can register additional types.
- *
- * @package Core3
+ * Core 3 CMS - Widget System
+ * Built-in widgets: Custom HTML, Recent Posts, Categories, Recent Comments, Search
+ * Zones: sidebar, footer
  */
-class Widget
-{
-    /**
-     * Available widget type labels.
-     */
-    public static function types()
-    {
-        return [
-            'recent_posts'    => 'Recent Posts',
-            'categories'      => 'Categories',
-            'search'          => 'Search',
-            'custom_html'     => 'Custom HTML',
-            'recent_comments' => 'Recent Comments',
-        ];
-    }
+class Widget {
+    private static array $builtIn = [
+        'recent_posts' => 'Recent Posts',
+        'categories' => 'Categories',
+        'recent_comments' => 'Recent Comments',
+        'search' => 'Search',
+        'custom_html' => 'Custom HTML',
+    ];
 
-    /**
-     * Fetch all widgets ordered by sort_order.
-     */
-    public static function all()
-    {
-        return DB::rows(
-            'SELECT * FROM ' . DB::t('widgets') . ' ORDER BY sort_order ASC'
-        );
-    }
-
-    /**
-     * Render all active widgets for a given zone.
-     */
-    public static function zone($zone)
-    {
-        $widgets = DB::rows(
-            'SELECT * FROM ' . DB::t('widgets') . ' WHERE zone = ? AND active = 1 ORDER BY sort_order ASC',
-            [$zone]
-        );
-
-        $output = '';
-
-        foreach ($widgets as $w) {
-            $config = json_decode($w['config'], true);
-            if (!is_array($config)) {
-                $config = [];
-            }
-
-            $title  = $w['title'] ? '<h3>' . e($w['title']) . '</h3>' : '';
-            $body   = self::renderType($w['type'], $config);
-
-            if ($body) {
-                $output .= '<div class="widget">' . $title . $body . '</div>';
-            }
+    /** Get all widgets assigned to a zone */
+    public static function zone(string $zone): string {
+        $t = DB::t('widgets');
+        try {
+            $widgets = DB::rows("SELECT * FROM $t WHERE zone=? AND active=1 ORDER BY sort_order", [$zone]);
+        } catch (\Exception $e) {
+            return '';
         }
 
-        return $output;
+        $html = '';
+        foreach ($widgets as $w) {
+            $html .= self::renderWidget($w);
+        }
+        return $html;
     }
 
-    /**
-     * Render the content for a specific widget type.
-     */
-    private static function renderType($type, $config)
-    {
-        $t     = DB::prefix();
-        $limit = isset($config['limit']) ? max(1, (int) $config['limit']) : 5;
+    /** Render a single widget */
+    public static function renderWidget(array $w): string {
+        $config = json_decode($w['config'] ?? '{}', true) ?: [];
+        $title = $w['title'] ?? '';
+        $out = '';
 
-        switch ($type) {
+        switch ($w['type']) {
+            case 'custom_html':
+                $out = $config['html'] ?? '';
+                break;
+
             case 'recent_posts':
-                $posts = DB::rows(
-                    "SELECT title, slug FROM {$t}posts WHERE status = 'published' ORDER BY published_at DESC LIMIT {$limit}"
-                );
-                if (!$posts) return '';
-                $html = '<ul>';
-                foreach ($posts as $p) {
-                    $html .= '<li><a href="' . url('post/' . $p['slug']) . '">' . e($p['title']) . '</a></li>';
-                }
-                return $html . '</ul>';
+                $limit = (int)($config['limit'] ?? 5);
+                $posts = DB::rows("SELECT title,slug FROM " . DB::t('posts') . " WHERE status='published' ORDER BY published_at DESC LIMIT $limit");
+                $out = '<ul>';
+                foreach ($posts as $p) $out .= '<li><a href="' . url('post/' . $p['slug']) . '">' . e($p['title']) . '</a></li>';
+                $out .= '</ul>';
+                break;
 
             case 'categories':
-                $cats = DB::rows("SELECT name, slug FROM {$t}categories ORDER BY name");
-                if (!$cats) return '';
-                $html = '<ul>';
-                foreach ($cats as $c) {
-                    $html .= '<li><a href="' . url('category/' . $c['slug']) . '">' . e($c['name']) . '</a></li>';
-                }
-                return $html . '</ul>';
-
-            case 'search':
-                return '<form action="' . url('search') . '" method="get">'
-                    . '<input type="text" name="q" placeholder="Search&hellip;" '
-                    . 'style="width:100%;padding:8px 10px;border:1px solid var(--b,#e5e7eb);border-radius:4px;font-size:14px;font-family:inherit;background:var(--surface,#f9fafb);color:var(--c,#1e1e1e)">'
-                    . '</form>';
-
-            case 'custom_html':
-                return isset($config['html']) ? $config['html'] : '';
+                $cats = DB::rows("SELECT c.name,c.slug,(SELECT COUNT(*) FROM " . DB::t('posts') . " WHERE category_id=c.id AND status='published') as pc FROM " . DB::t('categories') . " c ORDER BY c.name");
+                $out = '<ul>';
+                foreach ($cats as $c) $out .= '<li><a href="' . url('category/' . $c['slug']) . '">' . e($c['name']) . '</a> <span style="color:var(--m);font-size:12px">(' . $c['pc'] . ')</span></li>';
+                $out .= '</ul>';
+                break;
 
             case 'recent_comments':
-                $comments = DB::rows(
-                    "SELECT c.author_name, c.content, p.slug, p.title AS post_title "
-                    . "FROM {$t}comments c LEFT JOIN {$t}posts p ON c.post_id = p.id "
-                    . "WHERE c.status = 'approved' ORDER BY c.created_at DESC LIMIT {$limit}"
-                );
-                if (!$comments) return '';
-                $html = '<ul>';
-                foreach ($comments as $c) {
-                    $snippet = mb_substr(strip_tags($c['content']), 0, 60) . '&hellip;';
-                    $html .= '<li><strong>' . e($c['author_name']) . '</strong> on '
-                        . '<a href="' . url('post/' . $c['slug']) . '">' . e($c['post_title']) . '</a>'
-                        . '<br><small style="color:var(--m,#6b7280)">' . $snippet . '</small></li>';
+                $limit = (int)($config['limit'] ?? 5);
+                $coms = DB::rows("SELECT c.author_name,c.content,p.slug,p.title as pt FROM " . DB::t('comments') . " c LEFT JOIN " . DB::t('posts') . " p ON c.post_id=p.id WHERE c.status='approved' ORDER BY c.created_at DESC LIMIT $limit");
+                foreach ($coms as $c) {
+                    $out .= '<div style="padding:5px 0;border-bottom:1px solid #f0f0f0;font-size:12px"><strong>' . e($c['author_name']) . '</strong> on <a href="' . url('post/' . $c['slug']) . '">' . e(excerpt($c['pt'] ?? '', 30)) . '</a></div>';
                 }
-                return $html . '</ul>';
+                break;
+
+            case 'search':
+                $out = '<form action="' . url() . '" method="get" style="display:flex;gap:6px"><input type="text" name="q" placeholder="Search…" style="flex:1;padding:8px 10px;border:1px solid var(--b);border-radius:6px;font-size:13px"><button type="submit" style="padding:8px 12px;background:var(--accent);color:#fff;border:none;border-radius:6px;cursor:pointer;font-size:13px">Go</button></form>';
+                break;
 
             default:
-                return '';
+                // Check if a module provides this widget type
+                $moduleOut = '';
+                Modules::hook('render_widget_' . $w['type'], $moduleOut, $w, $config);
+                $out = $moduleOut;
+                break;
+        }
+
+        if ( ! $out) return '';
+
+        $h = '<div class="widget">';
+        if ($title) $h .= '<h3>' . e($title) . '</h3>';
+        $h .= $out . '</div>';
+        return $h;
+    }
+
+    /** Get available widget types */
+    public static function types(): array {
+        $types = self::$builtIn;
+        Modules::hook('widget_types', $types);
+        return $types;
+    }
+
+    /** Get all widgets for admin */
+    public static function all(): array {
+        try {
+            return DB::rows("SELECT * FROM " . DB::t('widgets') . " ORDER BY zone, sort_order");
+        } catch (\Exception $e) {
+            return [];
         }
     }
 }

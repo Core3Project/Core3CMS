@@ -1,33 +1,49 @@
 <?php
+
+defined('C3_ROOT') || exit;
+
 /**
- * Module loader and hook system.
+ * Module loader and hook system
  *
  * Modules register callbacks against named hooks. Core and theme
- * code fires those hooks at key points, allowing modules to inject
- * content, modify data, or register new routes without editing
- * core files.
+ * code fires those hooks at key extension points, allowing modules
+ * to inject content, modify data, or register routes without
+ * touching any core files.
  *
- * @package Core3
+ * @see HOOKS.md for the full developer reference
  */
 class Modules
 {
-    private static $hooks  = [];
+    /**
+     * Registered hook callbacks grouped by hook name
+     *
+     * @var array
+     */
+    private static $hooks = [];
+
+    /**
+     * Metadata for modules that were successfully booted
+     *
+     * @var array
+     */
     private static $loaded = [];
 
     /**
-     * Scan the modules directory and boot any active modules.
+     * Scan the modules directory and boot every active module
+     *
+     * @return void
      */
     public static function init()
     {
         $dir = C3_ROOT . '/content/modules';
 
-        if (!is_dir($dir)) {
+        if ( !  is_dir($dir)) {
             return;
         }
 
         foreach (glob($dir . '/*/module.json') as $jsonFile) {
-            $info = json_decode(file_get_contents($jsonFile), true);
-            $slug = basename(dirname($jsonFile));
+            $info    = json_decode(file_get_contents($jsonFile), true);
+            $slug    = basename(dirname($jsonFile));
             $default = isset($info['default_enabled']) ? $info['default_enabled'] : '0';
 
             if (Setting::get("module_{$slug}", $default) !== '1') {
@@ -44,9 +60,13 @@ class Modules
     }
 
     /**
-     * Register a callback for a hook.
+     * Register a callback for a named hook
      *
-     * Lower priority numbers run first (default: 10).
+     * @param string   $hook
+     * @param callable $callback
+     * @param int      $priority lower numbers run first (default 10)
+     *
+     * @return void
      */
     public static function on($hook, $callback, $priority = 10)
     {
@@ -57,7 +77,12 @@ class Modules
     }
 
     /**
-     * Remove a previously registered callback from a hook.
+     * Remove a previously registered callback
+     *
+     * @param string   $hook
+     * @param callable $callback
+     *
+     * @return void
      */
     public static function off($hook, $callback)
     {
@@ -65,23 +90,36 @@ class Modules
             return;
         }
 
-        self::$hooks[$hook] = array_filter(self::$hooks[$hook], function ($entry) use ($callback) {
-            return $entry['fn'] !== $callback;
-        });
+        self::$hooks[$hook] = array_filter(
+            self::$hooks[$hook],
+            function ($entry) use ($callback) {
+                return $entry['fn'] !== $callback;
+            }
+        );
     }
 
     /**
-     * Check whether any callbacks are registered for a hook.
+     * Check whether any callbacks exist for a hook
+     *
+     * @param string $hook
+     *
+     * @return bool
      */
     public static function has($hook)
     {
-        return !empty(self::$hooks[$hook]);
+        return ! empty(self::$hooks[$hook]);
     }
 
     /**
-     * Fire a data hook — callbacks receive a reference and can modify it.
+     * Fire a data hook
      *
-     * Used for hooks like 'routes' where modules add to an array.
+     * Callbacks receive $data by reference and may modify it.
+     * Additional arguments are forwarded after $data.
+     *
+     * @param string $hook
+     * @param mixed  &$data
+     *
+     * @return void
      */
     public static function hook($hook, &$data = null)
     {
@@ -96,7 +134,10 @@ class Modules
         });
 
         foreach (self::$hooks[$hook] as $entry) {
-            $result = call_user_func_array($entry['fn'], array_merge([&$data], $extra));
+            $result = call_user_func_array(
+                $entry['fn'],
+                array_merge([&$data], $extra)
+            );
 
             if ($result !== null) {
                 $data = $result;
@@ -105,15 +146,19 @@ class Modules
     }
 
     /**
-     * Fire an output hook — callbacks return HTML strings that are
-     * concatenated together.
+     * Fire an output hook
      *
-     * Used for hooks like 'head', 'footer', 'post_content_after'.
+     * Each callback returns an HTML string. All strings are
+     * concatenated and returned.
+     *
+     * @param string $hook
+     *
+     * @return string
      */
     public static function html($hook)
     {
-        $args = array_slice(func_get_args(), 1);
-        $out  = '';
+        $args   = array_slice(func_get_args(), 1);
+        $output = '';
 
         if (empty(self::$hooks[$hook])) {
             return '';
@@ -125,16 +170,21 @@ class Modules
 
         foreach (self::$hooks[$hook] as $entry) {
             $result = call_user_func_array($entry['fn'], $args);
+
             if ($result !== null) {
-                $out .= $result;
+                $output .= $result;
             }
         }
 
-        return $out;
+        return $output;
     }
 
     /**
-     * Check if a module is currently active.
+     * Check if a specific module is active
+     *
+     * @param string $slug
+     *
+     * @return bool
      */
     public static function active($slug)
     {
@@ -142,7 +192,9 @@ class Modules
     }
 
     /**
-     * Get all loaded modules and their metadata.
+     * Return metadata for all booted modules
+     *
+     * @return array
      */
     public static function loaded()
     {
@@ -150,24 +202,27 @@ class Modules
     }
 
     /**
-     * Get metadata for all installed modules (active or not).
+     * Return metadata for every installed module (active or not)
+     *
+     * @return array
      */
     public static function all()
     {
         $modules = [];
-        $dir = C3_ROOT . '/content/modules';
+        $dir     = C3_ROOT . '/content/modules';
 
-        if (!is_dir($dir)) {
+        if ( !  is_dir($dir)) {
             return [];
         }
 
         foreach (glob($dir . '/*/module.json') as $jsonFile) {
-            $info = json_decode(file_get_contents($jsonFile), true);
-            $slug = basename(dirname($jsonFile));
+            $info    = json_decode(file_get_contents($jsonFile), true);
+            $slug    = basename(dirname($jsonFile));
             $default = isset($info['default_enabled']) ? $info['default_enabled'] : '0';
 
             $info['slug']   = $slug;
             $info['active'] = Setting::get("module_{$slug}", $default) === '1';
+
             $modules[] = $info;
         }
 
@@ -175,9 +230,11 @@ class Modules
     }
 
     /**
-     * Install a module from a ZIP archive.
+     * Extract and install a module from a ZIP archive
      *
-     * Returns true on success or an error string.
+     * @param string $zipPath path to the uploaded file
+     *
+     * @return true|string true on success, error message on failure
      */
     public static function installZip($zipPath)
     {
@@ -188,6 +245,7 @@ class Modules
         }
 
         $found = false;
+
         for ($i = 0; $i < $zip->numFiles; $i++) {
             if (basename($zip->getNameIndex($i)) === 'module.json') {
                 $found = true;
@@ -195,7 +253,7 @@ class Modules
             }
         }
 
-        if (!$found) {
+        if ( !  $found) {
             $zip->close();
             return 'No module.json found in archive.';
         }

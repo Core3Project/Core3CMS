@@ -1,92 +1,52 @@
 <?php
-/**
- * Feed controller.
- *
- * Generates the RSS 2.0 feed and XML sitemap for the public site.
- *
- * @package Core3
- */
-class FeedController
-{
-    /**
-     * Output the RSS 2.0 feed.
-     */
-    public function rss()
-    {
-        $t        = DB::prefix();
-        $siteName = Setting::get('site_name', 'Core 3 CMS');
-        $siteDesc = Setting::get('site_description', '');
 
-        $posts = DB::rows(
-            "SELECT p.*, u.display_name AS author_name "
-            . "FROM {$t}posts p "
-            . "LEFT JOIN {$t}users u ON p.author_id = u.id "
-            . "WHERE p.status = 'published' "
-            . "ORDER BY p.published_at DESC LIMIT 20"
-        );
+defined('C3_ROOT') || exit;
+class FeedController {
+    public function rss(): void {
+        $t = DB::t('posts'); $tu = DB::t('users');
+        $posts = DB::rows("SELECT p.*,u.display_name as author_name FROM $t p LEFT JOIN $tu u ON p.author_id=u.id WHERE p.status='published' ORDER BY p.published_at DESC LIMIT 20");
+        $name = e(Setting::get('site_name', 'Core 3 CMS'));
+        $desc = e(Setting::get('site_description', ''));
+        $url = e(SITE_URL);
 
         header('Content-Type: application/rss+xml; charset=UTF-8');
-
-        echo '<?xml version="1.0" encoding="UTF-8"?>' . "\n";
-        echo '<rss version="2.0"><channel>';
-        echo '<title>' . e($siteName) . '</title>';
-        echo '<link>' . SITE_URL . '</link>';
-        echo '<description>' . e($siteDesc) . '</description>';
-        echo '<language>en</language>';
-
+        echo '<?xml version="1.0" encoding="UTF-8"?>';
+        echo "<rss version=\"2.0\" xmlns:atom=\"http://www.w3.org/2005/Atom\"><channel>";
+        echo "<title>{$name}</title><link>{$url}</link><description>{$desc}</description>";
+        echo "<atom:link href=\"{$url}/feed\" rel=\"self\" type=\"application/rss+xml\"/>";
         foreach ($posts as $p) {
-            $link    = Router::url('post/' . $p['slug']);
-            $excerpt = $p['excerpt'] ?: mb_substr(strip_tags($p['content']), 0, 300);
-
-            echo '<item>';
-            echo '<title>' . e($p['title']) . '</title>';
-            echo '<link>' . $link . '</link>';
-            echo '<guid>' . $link . '</guid>';
-            echo '<pubDate>' . date(DATE_RSS, strtotime($p['published_at'])) . '</pubDate>';
-            echo '<dc:creator xmlns:dc="http://purl.org/dc/elements/1.1/">' . e($p['author_name']) . '</dc:creator>';
-            echo '<description><![CDATA[' . $excerpt . ']]></description>';
-            echo '</item>';
+            $link = e(Router::url('post/' . $p['slug']));
+            $date = date(DATE_RSS, strtotime($p['published_at']));
+            $exc = e(excerpt($p['content'], 300));
+            echo "<item><title>" . e($p['title']) . "</title><link>{$link}</link><guid>{$link}</guid><pubDate>{$date}</pubDate><description>{$exc}</description></item>";
         }
-
-        echo '</channel></rss>';
+        echo "</channel></rss>";
     }
 
-    /**
-     * Output the XML sitemap.
-     */
-    public function sitemap()
-    {
-        $t = DB::prefix();
-
+    public function sitemap(): void {
         header('Content-Type: application/xml; charset=UTF-8');
-
-        echo '<?xml version="1.0" encoding="UTF-8"?>' . "\n";
+        echo '<?xml version="1.0" encoding="UTF-8"?>';
         echo '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">';
 
-        // Homepage.
-        echo '<url><loc>' . SITE_URL . '</loc><changefreq>daily</changefreq><priority>1.0</priority></url>';
+        // Homepage
+        echo '<url><loc>' . e(SITE_URL) . '</loc><changefreq>daily</changefreq><priority>1.0</priority></url>';
 
-        // Published posts.
-        $posts = DB::rows("SELECT slug, updated_at FROM {$t}posts WHERE status = 'published' ORDER BY published_at DESC");
+        // Posts
+        $posts = DB::rows("SELECT slug, updated_at FROM " . DB::t('posts') . " WHERE status='published' ORDER BY published_at DESC");
         foreach ($posts as $p) {
-            echo '<url><loc>' . Router::url('post/' . $p['slug']) . '</loc>';
-            echo '<lastmod>' . date('Y-m-d', strtotime($p['updated_at'])) . '</lastmod>';
-            echo '<changefreq>weekly</changefreq><priority>0.8</priority></url>';
+            echo '<url><loc>' . e(Router::url('post/' . $p['slug'])) . '</loc><lastmod>' . date('Y-m-d', strtotime($p['updated_at'])) . '</lastmod></url>';
         }
 
-        // Published pages.
-        $pages = DB::rows("SELECT slug, updated_at FROM {$t}pages WHERE status = 'published'");
+        // Pages
+        $pages = DB::rows("SELECT slug, updated_at FROM " . DB::t('pages') . " WHERE status='published'");
         foreach ($pages as $p) {
-            echo '<url><loc>' . Router::url('page/' . $p['slug']) . '</loc>';
-            echo '<lastmod>' . date('Y-m-d', strtotime($p['updated_at'])) . '</lastmod>';
-            echo '<changefreq>monthly</changefreq><priority>0.6</priority></url>';
+            echo '<url><loc>' . e(Router::url('page/' . $p['slug'])) . '</loc><lastmod>' . date('Y-m-d', strtotime($p['updated_at'])) . '</lastmod></url>';
         }
 
-        // Categories.
-        $cats = DB::rows("SELECT slug FROM {$t}categories");
+        // Categories
+        $cats = DB::rows("SELECT slug FROM " . DB::t('categories'));
         foreach ($cats as $c) {
-            echo '<url><loc>' . Router::url('category/' . $c['slug']) . '</loc>';
-            echo '<changefreq>weekly</changefreq><priority>0.5</priority></url>';
+            echo '<url><loc>' . e(Router::url('category/' . $c['slug'])) . '</loc><changefreq>weekly</changefreq></url>';
         }
 
         echo '</urlset>';

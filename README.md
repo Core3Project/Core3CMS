@@ -1,6 +1,23 @@
-# Core 3 CMS
+<p align="center">
+  <img src="assets/images/logo.svg" alt="Core 3 CMS" height="80">
+</p>
 
-A lightweight, self-hosted blog CMS built with PHP and MySQL. No frameworks, no Composer, no build tools. Upload it to any PHP host and you're running in under a minute.
+<p align="center">
+  A lightweight, self-hosted blog CMS built with PHP and MySQL.<br>
+  No frameworks, no Composer, no build tools. Upload and run.
+</p>
+
+<p align="center">
+  <a href="#installation">Installation</a> •
+  <a href="#features">Features</a> •
+  <a href="#bundled-modules">Modules</a> •
+  <a href="HOOKS.md">Developer Docs</a> •
+  <a href="#contributing">Contributing</a>
+</p>
+
+---
+
+# Core 3 CMS
 
 Core 3 is designed as a simpler alternative to WordPress for developers who want a clean codebase they can understand, extend, and contribute to.
 

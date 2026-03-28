@@ -1,11 +1,10 @@
 <?php
+
 /**
- * Core 3 CMS - Bootstrap
+ * Core 3 CMS bootstrap
  *
- * Loads configuration, core classes, helper functions,
- * and initialises the module system.
- *
- * @package Core3
+ * Loads configuration, classes, helpers, runs pending
+ * database migrations, and boots active modules.
  */
 
 define('C3_VERSION', '3.1.0');
@@ -14,23 +13,28 @@ if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 
+// redirect to installer when no config exists
 $configPath = C3_ROOT . '/core/config.php';
 
-if (!file_exists($configPath)) {
-    $uri = rtrim(dirname($_SERVER['SCRIPT_NAME']), '/');
-    header("Location: {$uri}/install/");
+if ( ! file_exists($configPath)) {
+    $base = rtrim(dirname($_SERVER['SCRIPT_NAME']), '/');
+    header("Location: {$base}/install/");
     exit;
 }
 
 require_once $configPath;
 
-foreach (glob(C3_ROOT . '/core/classes/*.php') as $classFile) {
-    require_once $classFile;
+// autoload core classes and helper functions
+foreach (glob(C3_ROOT . '/core/classes/*.php') as $file) {
+    require_once $file;
 }
 
-foreach (glob(C3_ROOT . '/core/functions/*.php') as $funcFile) {
-    require_once $funcFile;
+foreach (glob(C3_ROOT . '/core/functions/*.php') as $file) {
+    require_once $file;
 }
 
+// apply any outstanding database migrations
 Migration::run();
+
+// boot active modules
 Modules::init();

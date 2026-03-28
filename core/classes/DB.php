@@ -1,18 +1,27 @@
 <?php
+
+defined('C3_ROOT') || exit;
+
 /**
- * Database abstraction layer.
+ * Database abstraction layer
  *
- * Wraps PDO with convenience methods for common operations.
- * All queries use prepared statements to prevent SQL injection.
- *
- * @package Core3
+ * Thin wrapper around PDO providing convenience methods for
+ * queries, inserts, updates, and deletes. Every query uses
+ * prepared statements to guard against SQL injection.
  */
 class DB
 {
+    /**
+     * Shared PDO instance
+     *
+     * @var \PDO|null
+     */
     private static $pdo = null;
 
     /**
-     * Get or create the PDO connection.
+     * Return the PDO connection, creating it on first use
+     *
+     * @return \PDO
      */
     public static function connect()
     {
@@ -35,26 +44,43 @@ class DB
     }
 
     /**
-     * Execute a prepared statement and return the PDOStatement.
+     * Execute a prepared statement
+     *
+     * @param string $sql
+     * @param array  $params
+     *
+     * @return \PDOStatement
      */
     public static function query($sql, $params = [])
     {
-        $stmt = self::connect()->prepare($sql);
-        $stmt->execute($params);
-        return $stmt;
+        $statement = self::connect()->prepare($sql);
+        $statement->execute($params);
+
+        return $statement;
     }
 
     /**
-     * Fetch a single row or null.
+     * Fetch a single row
+     *
+     * @param string $sql
+     * @param array  $params
+     *
+     * @return array|null
      */
     public static function row($sql, $params = [])
     {
         $result = self::query($sql, $params)->fetch();
+
         return $result ?: null;
     }
 
     /**
-     * Fetch all matching rows.
+     * Fetch all matching rows
+     *
+     * @param string $sql
+     * @param array  $params
+     *
+     * @return array
      */
     public static function rows($sql, $params = [])
     {
@@ -62,18 +88,25 @@ class DB
     }
 
     /**
-     * Insert a row and return the new ID.
+     * Insert a row and return the new auto-increment ID
+     *
+     * @param string $table
+     * @param array  $data column => value pairs
+     *
+     * @return int
      */
     public static function insert($table, $data)
     {
-        $columns = implode(',', array_map(function ($col) {
-            return "`{$col}`";
-        }, array_keys($data)));
+        $columns = [];
 
-        $placeholders = implode(',', array_fill(0, count($data), '?'));
+        foreach (array_keys($data) as $col) {
+            $columns[] = "`{$col}`";
+        }
+
+        $placeholders = implode(', ', array_fill(0, count($data), '?'));
 
         self::query(
-            "INSERT INTO {$table} ({$columns}) VALUES ({$placeholders})",
+            "INSERT INTO {$table} (" . implode(', ', $columns) . ") VALUES ({$placeholders})",
             array_values($data)
         );
 
@@ -81,22 +114,37 @@ class DB
     }
 
     /**
-     * Update rows matching a WHERE clause.
+     * Update rows matching a WHERE clause
+     *
+     * @param string $table
+     * @param array  $data        column => value pairs to set
+     * @param string $where       SQL condition
+     * @param array  $whereParams bind values for the condition
+     *
+     * @return void
      */
     public static function update($table, $data, $where, $whereParams = [])
     {
-        $set = implode(',', array_map(function ($col) {
-            return "`{$col}` = ?";
-        }, array_keys($data)));
+        $setParts = [];
+
+        foreach (array_keys($data) as $col) {
+            $setParts[] = "`{$col}` = ?";
+        }
 
         self::query(
-            "UPDATE {$table} SET {$set} WHERE {$where}",
+            "UPDATE {$table} SET " . implode(', ', $setParts) . " WHERE {$where}",
             array_merge(array_values($data), $whereParams)
         );
     }
 
     /**
-     * Delete rows matching a WHERE clause.
+     * Delete rows matching a WHERE clause
+     *
+     * @param string $table
+     * @param string $where
+     * @param array  $params
+     *
+     * @return void
      */
     public static function delete($table, $where, $params = [])
     {
@@ -104,16 +152,25 @@ class DB
     }
 
     /**
-     * Count rows matching a WHERE clause.
+     * Count rows matching a WHERE clause
+     *
+     * @param string $table
+     * @param string $where
+     * @param array  $params
+     *
+     * @return int
      */
     public static function count($table, $where = '1=1', $params = [])
     {
         $row = self::row("SELECT COUNT(*) AS total FROM {$table} WHERE {$where}", $params);
+
         return (int) $row['total'];
     }
 
     /**
-     * Return the configured table prefix.
+     * Return the configured table prefix
+     *
+     * @return string
      */
     public static function prefix()
     {
@@ -121,7 +178,11 @@ class DB
     }
 
     /**
-     * Return a fully prefixed table name.
+     * Return a prefixed table name
+     *
+     * @param string $name
+     *
+     * @return string
      */
     public static function t($name)
     {
