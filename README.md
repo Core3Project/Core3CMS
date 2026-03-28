@@ -50,29 +50,11 @@ Core 3 is designed as a simpler alternative to WordPress for developers who want
 3. Follow the four-step installer.
 4. Delete the `/install` directory when finished.
 
-## Bundled Modules
+## Modules & Themes
 
-| Module | Default | Description |
-|---|---|---|
-| SEO Meta | On | Open Graph tags and meta descriptions |
-| Sitemap | On | Auto-generated `/sitemap.xml` |
-| Analytics | On | Simple page view tracking |
-| Search | On | Site search with results page |
-| Auto Updater | On | Checks GitHub for new releases |
-| Contact Form | Off | Email contact page at `/contact` |
-| Cloudflare Turnstile | Off | Anti-bot verification |
-| Social Sharing | Off | Share buttons on posts |
-| Cookie Consent | Off | GDPR-compliant dismissable banner |
-| Related Posts | Off | Category-based related posts |
-| Backup | Off | One-click SQL dump download |
-| Media Manager | Off | Upload and browse files |
-| Maintenance Mode | Off | "Coming soon" page for visitors |
-| Disqus Comments | Off | Replace native comments with Disqus |
+Core 3 ships with a collection of built-in modules (SEO, search, analytics, contact form, backups, and more) that can be enabled from the admin panel. Two themes are included out of the box — a clean light default and a dark variant.
 
-## Bundled Themes
-
-- **Default** — clean light theme
-- **Dark** — dark colour scheme, inherits templates from Default
+Modules and themes are installed as simple ZIP files. Building your own is straightforward — see the developer docs below.
 
 ## Extending Core 3
 
@@ -101,4 +83,33 @@ MIT
 
 ## Credits
 
-Built by [VexxusArts Ltd](https://vexxusarts.com).
+Core 3 CMS was originally created in 2008 by **William Tayeb** as a lightweight alternative to the bloated CMS landscape of the time. After years of dormancy, the project was picked up and rebuilt from the ground up by **Zubair Fazal**, who has been actively developing and maintaining it since.
+
+### Contributors
+
+<table>
+  <tr>
+    <td align="center">
+      <a href="https://github.com/williamtayeb">
+        <img src="https://github.com/williamtayeb.png" width="80" height="80" style="border-radius:50%" alt="williamtayeb"><br>
+        <sub><b>William Tayeb</b></sub>
+      </a><br>
+      <sub>Creator</sub>
+    </td>
+    <td align="center">
+      <a href="https://github.com/zubairfazal">
+        <img src="https://github.com/zubairfazal.png" width="80" height="80" style="border-radius:50%" alt="zubairfazal"><br>
+        <sub><b>Zubair Fazal</b></sub>
+      </a><br>
+      <sub>Lead Developer</sub>
+    </td>
+    <td align="center">
+      <a href="https://github.com/theadriann">
+        <img src="https://github.com/theadriann.png" width="80" height="80" style="border-radius:50%" alt="theadriann"><br>
+        <sub><b>Adrian</b></sub>
+      </a><br>
+      <sub>Contributor</sub>
+    </td>
+  </tr>
+</table>
+
