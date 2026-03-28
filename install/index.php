@@ -37,7 +37,35 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $step === 3) {
             $wi=$pdo->prepare("INSERT INTO {$p}widgets(zone,type,title,config,active,sort_order) VALUES(?,?,?,?,1,?)"); $wi->execute(['sidebar','search','','{}',0]); $wi->execute(['sidebar','recent_posts','Recent Posts','{"limit":5}',1]); $wi->execute(['sidebar','categories','Categories','{}',2]);
             $salt=bin2hex(random_bytes(32)); $cfg=file_get_contents($root.'/core/config.sample.php');
             $cfg=str_replace(['{{DB_HOST}}','{{DB_NAME}}','{{DB_USER}}','{{DB_PASS}}','{{DB_PREFIX}}','{{SITE_URL}}','{{AUTH_SALT}}'],[$d['host'],$d['name'],$d['user'],$d['pass'],$d['prefix'],$su,$salt],$cfg);
-            file_put_contents($root.'/core/config.php',$cfg); unset($_SESSION['c3_db']); header('Location:?step=4'); exit;
+            file_put_contents($root.'/core/config.php',$cfg);
+
+            // Generate .htaccess with correct RewriteBase
+            $base = rtrim(dirname(dirname($_SERVER['SCRIPT_NAME'])), '/');
+            $rewriteBase = $base ? $base . '/' : '/';
+            $htaccess = "# Core 3 CMS — generated during installation\n"
+                . "# This file is required for clean URLs and routing.\n\n"
+                . "Options -Indexes -MultiViews\n"
+                . "RewriteEngine On\n"
+                . "RewriteBase {$rewriteBase}\n\n"
+                . "# Block direct access to core files\n"
+                . "RewriteRule ^core/ - [F,L]\n\n"
+                . "# Block PHP execution in uploads\n"
+                . "RewriteRule ^content/uploads/.*\\.ph(p[345s]?|tml)$ - [F,L]\n\n"
+                . "# Let the install directory serve itself\n"
+                . "RewriteRule ^install(/.*)?$ - [L]\n\n"
+                . "# Admin: serve real files directly, route the rest\n"
+                . "RewriteCond %{REQUEST_FILENAME} -f\n"
+                . "RewriteRule ^admin/ - [L]\n"
+                . "RewriteRule ^admin(/.*)?$ admin/index.php [L,QSA]\n\n"
+                . "# Serve existing files and directories\n"
+                . "RewriteCond %{REQUEST_FILENAME} -f [OR]\n"
+                . "RewriteCond %{REQUEST_FILENAME} -d\n"
+                . "RewriteRule ^ - [L]\n\n"
+                . "# Everything else goes to the front controller\n"
+                . "RewriteRule ^(.*)$ index.php [L,QSA]\n";
+            file_put_contents($root.'/.htaccess', $htaccess);
+
+            unset($_SESSION['c3_db']); header('Location:?step=4'); exit;
         } catch(PDOException $e) { $error=$e->getMessage(); }
     }
 }
