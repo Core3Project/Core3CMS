@@ -1,0 +1,12 @@
+{
+    "name": "Cookie Consent",
+    "version": "1.0.0",
+    "description": "GDPR-compliant cookie consent banner. Dismissable with customizable message.",
+    "author": "Core 3 CMS",
+    "default_enabled": "0",
+    "settings": [
+        {"key": "cookie_message", "label": "Banner Message", "type": "textarea", "default": "This website uses cookies to ensure you get the best experience.", "hint": "The message displayed in the cookie banner."},
+        {"key": "cookie_button", "label": "Accept Button Text", "type": "text", "default": "Accept", "hint": "Text for the accept/dismiss button."},
+        {"key": "cookie_policy_url", "label": "Privacy Policy URL", "type": "text", "default": "", "placeholder": "/page/privacy-policy", "hint": "Optional link to your privacy policy page."}
+    ]
+}

@@ -1,0 +1,167 @@
+/* Core 3 CMS Admin */
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--text:#1d2327;--muted:#646970;--border:#c3c4c7;--bg:#f0f0f1;--card:#fff;--primary:#2271b1;--primary-dark:#135e96;--red:#d63638;--green:#00a32a;--sidebar-bg:#1d2327;--sidebar-text:#c3c4c7;--sidebar-hover:#2c3338;--sidebar-active:#0073aa;--font:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Oxygen-Sans,Ubuntu,Cantarell,"Helvetica Neue",sans-serif;--mono:Consolas,Monaco,monospace;--radius:4px}
+body{font-family:var(--font);color:var(--text);background:var(--bg);font-size:13px;line-height:1.4em;-webkit-font-smoothing:subpixel-antialiased}
+a{color:var(--primary);text-decoration:none}a:hover{color:var(--primary-dark);text-decoration:underline}
+
+/* ── Sidebar ── */
+.adm-sidebar{position:fixed;top:0;left:0;bottom:0;width:220px;background:#2c3338;z-index:100;overflow:visible}
+.adm-sidebar .logo{display:flex;align-items:center;height:50px;padding:0 12px;background:#1d2327}
+.adm-sidebar .logo img{height:28px}
+.adm-sidebar nav{padding:6px 0}
+
+/* Nav items with SVG icons */
+.nav-item{position:relative}
+.nav-item>a{display:flex;align-items:center;gap:10px;padding:6px 12px;color:var(--sidebar-text);font-size:14px;font-weight:400;line-height:18px;min-height:34px;transition:none}
+.nav-item>a:hover{background:rgba(255,255,255,.05);color:#fff;text-decoration:none}
+.nav-item>a.active{background:var(--sidebar-active);color:#fff;font-weight:600}
+.nav-item>a .ico{width:20px;height:20px;flex-shrink:0;display:flex;align-items:center;justify-content:center}
+.nav-item>a .ico svg{width:18px;height:18px;fill:currentColor;opacity:.7}
+.nav-item>a.active .ico svg,.nav-item>a:hover .ico svg{opacity:1}
+.nav-item .badge-c{background:var(--red);color:#fff;font-size:10px;padding:0 6px;border-radius:10px;line-height:18px;margin-left:auto;font-weight:600}
+.nav-sep{height:1px;background:rgba(255,255,255,.06);margin:6px 0}
+
+/* Sub-menus - flyout to the right like WordPress */
+.nav-item .sub{display:none;position:absolute;left:100%;top:0;width:180px;background:#32373c;padding:6px 0;border-radius:0 4px 4px 0;box-shadow:2px 2px 6px rgba(0,0,0,.3);z-index:200}
+.nav-item:hover>.sub{display:block}
+.nav-item .sub a{display:block;padding:6px 14px;color:#b4b9be;font-size:13px;line-height:20px;white-space:nowrap}
+.nav-item .sub a:hover{color:#fff;background:rgba(255,255,255,.06);text-decoration:none}
+
+/* ── Top bar ── */
+.adm-topbar{position:fixed;top:0;left:220px;right:0;height:46px;background:#fff;border-bottom:1px solid #dcdcde;display:flex;align-items:center;justify-content:flex-end;padding:0 18px;z-index:99;font-size:13px}
+.adm-topbar .user{display:flex;align-items:center;gap:14px;color:var(--muted)}
+.adm-topbar .user a{color:var(--muted)}
+.adm-topbar .user a:hover{color:var(--primary)}
+.cache-btn{background:#f6f7f7;border:1px solid var(--border);border-radius:var(--radius);padding:2px 10px;font-size:12px;color:var(--muted);text-decoration:none;transition:.15s;white-space:nowrap}
+.cache-btn:hover{background:#fff;border-color:var(--primary);color:var(--primary);text-decoration:none}
+.adm-badge{font-size:10px;padding:2px 8px;border-radius:3px;font-weight:600;color:#fff}
+.adm-badge.admin{background:var(--red)}
+.adm-badge.editor{background:var(--primary)}
+.adm-badge.author{background:#dba617}
+.adm-badge.subscriber{background:#646970}
+
+/* ── Mobile ── */
+.adm-toggle{display:none;position:fixed;top:7px;left:8px;z-index:200;background:var(--sidebar-bg);color:#fff;border:none;padding:8px 12px;border-radius:var(--radius);cursor:pointer;font-size:16px;line-height:1}
+
+/* ── Content ── */
+.adm-content{margin-left:220px;padding-top:46px}
+.adm-wrap{padding:20px 20px 40px}
+.adm-grid{display:grid;grid-template-columns:1fr 300px;gap:20px}
+.adm-full{max-width:700px}
+
+/* ── Page header ── */
+.action-bar{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:8px}
+.action-bar h1{font-size:23px;font-weight:400;line-height:1.3;color:var(--text)}
+
+/* ── Panels ── */
+.panel{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);margin-bottom:16px;box-shadow:0 1px 1px rgba(0,0,0,.04)}
+.panel-hd{padding:8px 12px;font-weight:600;font-size:14px;border-bottom:1px solid #f0f0f1;display:flex;justify-content:space-between;align-items:center}
+.panel-bd{padding:12px}
+
+/* ── Tables ── */
+.tbl{width:100%;border-collapse:collapse;border-spacing:0}
+.tbl th{padding:8px 10px;text-align:left;font-size:13px;color:var(--muted);font-weight:400;border-bottom:1px solid var(--border)}
+.tbl td{padding:8px 10px;border-bottom:1px solid #f0f0f1;font-size:13px;vertical-align:middle}
+.tbl tr:hover td{background:#f6f7f7}
+.tbl a{font-weight:600}
+.tbl .acts{font-size:12px;white-space:nowrap}.tbl .acts a{margin-right:8px;color:var(--primary);font-weight:400}
+.tbl .acts a.del{color:var(--red)}
+
+/* ── Forms (WordPress-sized) ── */
+.fg{margin-bottom:16px}
+.fg>label{display:block;font-size:14px;font-weight:600;margin-bottom:5px;color:var(--text)}
+.fc{width:100%;padding:0 8px;height:36px;border:1px solid #8c8f94;border-radius:var(--radius);font-size:14px;font-family:var(--font);background:#fff;line-height:2;color:var(--text)}
+.fc:focus{outline:none;border-color:var(--primary);box-shadow:0 0 0 1px var(--primary)}
+textarea.fc{height:auto;min-height:180px;padding:8px;resize:vertical;line-height:1.6}
+select.fc{cursor:pointer;-webkit-appearance:auto;appearance:auto}
+.check-row{display:flex;align-items:center;gap:8px;margin-bottom:8px}
+.check-row label{font-size:14px;font-weight:400;color:var(--text)}
+.check-row input[type=checkbox]{width:18px;height:18px;margin:0;accent-color:var(--primary)}
+.hint{font-size:13px;color:var(--muted);margin-top:3px;font-style:italic}
+
+/* ── Buttons ── */
+.btn{display:inline-flex;align-items:center;gap:6px;padding:0 12px;height:32px;border-radius:var(--radius);font-size:13px;font-weight:400;cursor:pointer;border:1px solid transparent;font-family:var(--font);text-decoration:none;line-height:2;white-space:nowrap}
+.btn-primary{background:var(--primary);color:#fff;border-color:var(--primary)}.btn-primary:hover{background:var(--primary-dark);text-decoration:none;color:#fff}
+.btn-red{background:var(--red);color:#fff;border-color:var(--red)}.btn-red:hover{background:#a02020;text-decoration:none;color:#fff}
+.btn-danger{background:#b32d2e;color:#fff}.btn-danger:hover{background:#8a2424;text-decoration:none;color:#fff}
+.btn-outline{background:#f6f7f7;border-color:var(--border);color:var(--text)}.btn-outline:hover{background:#f0f0f1;border-color:#8c8f94;text-decoration:none}
+.btn-sm{height:26px;font-size:12px;padding:0 8px}
+.btn-lg{height:40px;font-size:14px;padding:0 20px}
+
+/* ── Alerts (WordPress left-border style) ── */
+.alert{padding:12px 16px;margin-bottom:16px;border-left:4px solid;background:var(--card);box-shadow:0 1px 1px rgba(0,0,0,.04);font-size:13px;line-height:1.5;border-radius:0 var(--radius) var(--radius) 0}
+.alert-success{border-left-color:var(--green)}
+.alert-error{border-left-color:var(--red)}
+.alert-info{border-left-color:var(--primary)}
+.alert-warning{border-left-color:#dba617;background:#fcf9e8}
+
+/* ── Stats ── */
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:10px;margin-bottom:20px}
+.stat{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:14px;text-align:center;box-shadow:0 1px 1px rgba(0,0,0,.04)}
+.stat .n{font-size:28px;font-weight:400;color:var(--primary)}
+.stat .l{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-top:2px}
+
+/* ── Badges ── */
+.badge{display:inline-block;padding:2px 8px;border-radius:3px;font-size:11px;font-weight:600}
+.badge-published,.badge-approved,.badge-active{background:#d1fae5;color:#065f46}
+.badge-draft,.badge-pending{background:#fef3c7;color:#92400e}
+.badge-spam,.badge-banned{background:#fee2e2;color:#991b1b}
+.badge-trash,.badge-inactive{background:#f3f4f6;color:#6b7280}
+
+/* ── Tabs (WP-style) ── */
+.tabs{margin-bottom:16px;border-bottom:1px solid var(--border)}
+.tabs a{display:inline-block;padding:6px 14px;font-size:13px;color:var(--muted);border:1px solid transparent;border-bottom:none;margin-bottom:-1px;border-radius:var(--radius) var(--radius) 0 0;font-weight:400}
+.tabs a:hover{color:var(--text);text-decoration:none}
+.tabs a.active{color:var(--text);font-weight:600;background:var(--card);border-color:var(--border);border-bottom-color:var(--card)}
+
+/* ── Pagination ── */
+.pagination{display:flex;gap:3px;margin-top:12px}
+.pg-link{padding:4px 10px;border:1px solid var(--border);border-radius:var(--radius);font-size:13px;color:var(--muted);background:var(--card)}
+.pg-link:hover{border-color:var(--primary);color:var(--primary);text-decoration:none}
+.pg-link.active{background:var(--primary);color:#fff;border-color:var(--primary)}
+
+/* ── WYSIWYG ── */
+.c3-editor-wrap{border:1px solid #8c8f94;border-radius:var(--radius);overflow:hidden;background:#fff}
+.c3-toolbar{background:#f6f7f7;border-bottom:1px solid #dcdcde;padding:4px 6px;display:flex;flex-wrap:wrap;gap:1px;align-items:center}
+.c3-toolbar .sep{width:1px;height:18px;background:#dcdcde;margin:0 4px}
+.c3-toolbar button{background:none;border:1px solid transparent;border-radius:3px;cursor:pointer;padding:4px 7px;font-size:13px;color:#50575e;min-width:26px;text-align:center}
+.c3-toolbar button:hover{background:#fff;border-color:#c3c4c7}
+.c3-toolbar button.active{background:#dcdcde;border-color:#c3c4c7}
+.c3-toolbar select{border:1px solid #8c8f94;border-radius:3px;padding:3px;font-size:12px;background:#fff}
+.c3-editable{min-height:300px;padding:16px;outline:none;font-size:16px;line-height:1.7;color:var(--text);font-family:Georgia,"Times New Roman",serif}
+.c3-editable:empty::before{content:attr(data-placeholder);color:#a7aaad;pointer-events:none}
+.c3-editable p{margin-bottom:12px}
+.c3-editable blockquote{border-left:3px solid var(--primary);padding:8px 14px;margin:10px 0;background:#f6f7f7}
+.c3-editable pre{background:#2c3338;color:#e0e0e0;padding:12px;border-radius:var(--radius);font-family:var(--mono);font-size:13px;margin:10px 0}
+.c3-editable img{max-width:100%;border-radius:var(--radius)}
+.c3-source{width:100%;min-height:300px;padding:14px;border:none;font-family:var(--mono);font-size:13px;resize:vertical;display:none;background:#2c3338;color:#e0e0e0;tab-size:2}
+
+/* ── Auth pages ── */
+.auth-page{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;background:var(--bg)}
+.auth-page .auth-logo{margin-bottom:20px}
+.auth-page .auth-logo img{height:70px}
+.auth-box{width:360px;background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:26px 24px 16px;box-shadow:0 1px 3px rgba(0,0,0,.04)}
+.auth-box .fg label{font-size:14px;font-weight:600;margin-bottom:6px}
+.auth-box .fc{height:40px;font-size:16px;padding:3px 10px}
+.auth-box .btn-lg{width:auto;float:right}
+.auth-box .remember{display:flex;align-items:center;gap:8px;margin-bottom:16px}
+.auth-box .remember input{width:18px;height:18px;accent-color:var(--primary)}
+.auth-box .remember label{font-size:14px;color:var(--text)}
+.auth-links{margin-top:16px;text-align:center;font-size:13px;color:var(--muted)}
+.auth-links a{color:var(--muted)}
+.auth-links a:hover{color:var(--primary)}
+
+/* ── Responsive ── */
+@media(max-width:960px){
+    .adm-sidebar{transform:translateX(-100%);transition:transform .2s ease}
+    .adm-sidebar.open{transform:translateX(0)}
+    .adm-toggle{display:block}
+    .adm-topbar{left:0}
+    .adm-content{margin-left:0}
+    .adm-grid{grid-template-columns:1fr}
+}
+@media(max-width:600px){
+    .action-bar h1{font-size:18px}
+    .stats{grid-template-columns:repeat(2,1fr)}
+    .auth-box{width:calc(100% - 40px)}
+}

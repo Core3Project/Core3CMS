@@ -1,0 +1,25 @@
+{
+    "name": "Contact Form",
+    "version": "1.0.0",
+    "description": "Adds a /contact page with an email contact form.",
+    "author": "Core 3 CMS",
+    "default_enabled": "0",
+    "settings": [
+        {
+            "key": "contact_recipient",
+            "label": "Recipient Email",
+            "type": "text",
+            "required": true,
+            "placeholder": "admin@example.com",
+            "hint": "Contact form submissions will be sent to this email. Leave blank to use the site's From Email."
+        },
+        {
+            "key": "contact_success_message",
+            "label": "Success Message",
+            "type": "text",
+            "default": "Thanks! We'll get back to you soon.",
+            "placeholder": "Thanks! We'll get back to you soon.",
+            "hint": "Message shown after successful submission."
+        }
+    ]
+}

@@ -1,0 +1,7 @@
+{
+    "name": "Analytics",
+    "version": "1.0.0",
+    "description": "Simple page view tracking with a dashboard widget. No external services.",
+    "author": "Core 3 CMS",
+    "default_enabled": "1"
+}

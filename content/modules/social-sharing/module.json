@@ -1,0 +1,10 @@
+{
+    "name": "Social Sharing",
+    "version": "1.0.0",
+    "description": "Adds share buttons (X/Twitter, Facebook, LinkedIn, Email) to the bottom of posts.",
+    "author": "Core 3 CMS",
+    "default_enabled": "0",
+    "settings": [
+        {"key": "share_networks", "label": "Networks", "type": "text", "default": "twitter,facebook,linkedin,email", "hint": "Comma-separated: twitter, facebook, linkedin, email, reddit, whatsapp"}
+    ]
+}

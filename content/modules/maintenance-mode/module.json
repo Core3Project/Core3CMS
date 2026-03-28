@@ -1,0 +1,12 @@
+{
+    "name": "Maintenance Mode",
+    "version": "1.0.0",
+    "description": "Show a 'Coming Soon' or maintenance page to visitors. Logged-in admins can still browse the site.",
+    "author": "Core 3 CMS",
+    "default_enabled": "0",
+    "settings": [
+        {"key": "maintenance_title", "label": "Page Title", "type": "text", "default": "Under Maintenance", "hint": "The heading visitors will see."},
+        {"key": "maintenance_message", "label": "Message", "type": "textarea", "default": "We're working on some improvements. We'll be back shortly.", "hint": "The message shown below the title."},
+        {"key": "maintenance_allow_admin", "label": "Allow logged-in admins to view the site", "type": "checkbox", "default": "1", "hint": "Admins can bypass maintenance mode when logged in."}
+    ]
+}

@@ -1,0 +1,10 @@
+{
+    "name": "Media Manager",
+    "version": "1.0.0",
+    "description": "Upload, browse, and manage images and files. Adds a media library to the admin panel.",
+    "author": "Core 3 CMS",
+    "default_enabled": "0",
+    "settings": [
+        {"key": "media_max_size", "label": "Max Upload Size (MB)", "type": "text", "default": "5", "hint": "Maximum file size in megabytes. Server limits may also apply."}
+    ]
+}

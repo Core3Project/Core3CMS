@@ -1,0 +1,11 @@
+{
+    "name": "SEO Meta",
+    "version": "1.0.0",
+    "description": "Add custom meta titles, descriptions, and Open Graph tags to posts and pages for better SEO and social sharing.",
+    "author": "Core 3 CMS",
+    "default_enabled": "1",
+    "settings": [
+        {"key": "seo_title_suffix", "label": "Title Suffix", "type": "text", "default": "", "placeholder": " — My Blog", "hint": "Appended to every page title (e.g. ' — My Blog'). Leave empty for none."},
+        {"key": "seo_default_image", "label": "Default OG Image URL", "type": "text", "default": "", "placeholder": "https://example.com/og.jpg", "hint": "Used when a post has no featured image."}
+    ]
+}

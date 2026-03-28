@@ -1,0 +1,8 @@
+{
+    "name": "Backup",
+    "version": "1.0.0",
+    "description": "One-click database backup. Download a full SQL dump from the admin panel.",
+    "author": "Core 3 CMS",
+    "default_enabled": "0",
+    "settings": []
+}

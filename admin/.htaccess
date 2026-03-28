@@ -1,0 +1,6 @@
+RewriteEngine On
+# Only serve actual files directly (CSS, JS, images)
+RewriteCond %{REQUEST_FILENAME} -f
+RewriteRule ^ - [L]
+# Everything else routes to index.php
+RewriteRule ^(.*)$ index.php [L,QSA]

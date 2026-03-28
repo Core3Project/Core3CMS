@@ -1,0 +1,10 @@
+{
+    "name": "Related Posts",
+    "version": "1.0.0",
+    "description": "Shows related posts at the bottom of each post based on shared category.",
+    "author": "Core 3 CMS",
+    "default_enabled": "0",
+    "settings": [
+        {"key": "related_count", "label": "Number of Related Posts", "type": "text", "default": "3", "hint": "How many related posts to show (1-6)."}
+    ]
+}

@@ -1,0 +1,7 @@
+{
+    "name": "Dark",
+    "version": "1.0.0",
+    "author": "Core 3 CMS",
+    "description": "A sleek dark theme for Core 3 CMS. Inherits templates from the default theme.",
+    "license": "MIT"
+}

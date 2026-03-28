@@ -1,76 +1,87 @@
-<p align="center">
-  <img src="https://raw.githubusercontent.com/zubairfazal/Core3/master/system/assests/img/logo.jpg" width="350"/>
-</p>
+# Core 3 CMS
 
+A lightweight, self-hosted blog CMS built with PHP and MySQL. No frameworks, no Composer, no build tools. Upload it to any PHP host and you're running in under a minute.
 
-# Core 3 CMS - The Worlds Most Powerful CMS
-The goal of the Core 3 project is to create a powerful and free CMS . Core 3 is only partially finished, and currently contains limited features compared to the actual expected release. It is completely open source; community involvement is highly encouraged.
+Core 3 is designed as a simpler alternative to WordPress for developers who want a clean codebase they can understand, extend, and contribute to.
 
-If you wish to contribute ideas or code please visit our site linked below or
-make pull requests to our [Github Repository](https://github.com/Core3Project/Core3-CMS).
+## Features
 
+- **Posts, pages, and categories** with a WYSIWYG editor and Markdown support
+- **Theme engine** with template inheritance — child themes only override what they need
+- **Module system** with hooks — extend functionality without touching core files
+- **User roles** — admin, editor, author, subscriber
+- **Comment system** with moderation and honeypot spam protection
+- **Widget zones** for sidebar and footer content
+- **SEO-friendly URLs** via front-controller routing
+- **Password reset** via email (PHP mail or SMTP)
+- **Appearance customiser** — upload logos, set accent colours, add custom CSS
+- **Database migrations** — safe upgrades between versions
+- **Auto-update checker** — notifies admins when a new release is available
+- **XSS protection** in the Markdown parser (mitigates CVE-2025-46041 class vulnerabilities)
+- **CSRF tokens** on all forms
 
-# What does Core 3 CMS currently support?
-Here is a list of the features implemented in Core 3 CMS, please note that the project is currently work in progress.
-- User Registration: ✓
-- User login: ✓
-- Powerful theming system: ✓
-- User sessions: Partial support
-- Admin Panel: ✘
-- User comments: ✘
-- Forums: ✘
-- Blog posts: ✘
-- Theme editor: ✘
-- Use Laravel Framework: ✘
+## Requirements
 
-<br>
-Everything marked as an X is a planned feature.  Other unique features are planned.
+- PHP 7.4 or later
+- MySQL 5.7+ or MariaDB 10.3+
+- Apache with `mod_rewrite` enabled
 
-# Powerful and Sleek Admin Panel
+## Installation
 
-Core3 will feature a poweful and also very sleek looking admin panel, giving the CMS an ease of access for the administrator user. There are many features planned for the admin panel, such as a plugin library and others. Currently we have got the main design completed.
+1. Upload the `core3cms` directory to your web server.
+2. Visit `https://yoursite.com/core3cms/install/` in your browser.
+3. Follow the four-step installer.
+4. Delete the `/install` directory when finished.
 
-This template currently is slighly outdated but withing few weeks we are going to make a major overhaul making it the best free admin template you have seen on Github or elsehwere on the web.
+## Bundled Modules
 
-Tableless CSS coding, cross-browser compatible and clean. Built upon the 960 CSS Grid system. 
+| Module | Default | Description |
+|---|---|---|
+| SEO Meta | On | Open Graph tags and meta descriptions |
+| Sitemap | On | Auto-generated `/sitemap.xml` |
+| Analytics | On | Simple page view tracking |
+| Search | On | Site search with results page |
+| Auto Updater | On | Checks GitHub for new releases |
+| Contact Form | Off | Email contact page at `/contact` |
+| Cloudflare Turnstile | Off | Anti-bot verification |
+| Social Sharing | Off | Share buttons on posts |
+| Cookie Consent | Off | GDPR-compliant dismissable banner |
+| Related Posts | Off | Category-based related posts |
+| Backup | Off | One-click SQL dump download |
+| Media Manager | Off | Upload and browse files |
+| Maintenance Mode | Off | "Coming soon" page for visitors |
+| Disqus Comments | Off | Replace native comments with Disqus |
 
-<p align="center">
-  <img src="https://raw.githubusercontent.com/zubairfazal/Core3/master/system/assests/img/login.PNG"/>
-</p>
+## Bundled Themes
 
-<p align="center">
-  <img src="https://raw.githubusercontent.com/zubairfazal/Core3/master/system/assests/img/dashboard.PNG"/>
-</p>
+- **Default** — clean light theme
+- **Dark** — dark colour scheme, inherits templates from Default
 
-# Requirements
+## Extending Core 3
 
-- Platform: Linux, Windows, MAC
-- PHP = 5.5.1
-- MySQL = 5.5.0
-- Apache HTTP server
+See [HOOKS.md](HOOKS.md) for the full developer reference covering:
 
+- All available hooks and how to use them
+- Module structure and settings
+- Theme structure and template inheritance
+- Database migration system for contributors
 
-# Running the CMS
-Because Core 3 CMS is in development, ther are no current scripts to ease installation and deplyment of Core 3 CMS.
+## Contributing
 
-# Reporting issues
+Contributions are welcome. Please:
 
-Issues can be reported via the [Github Issue Tracker](https://github.com/Core3Project/Core3-CMS/issues).
+1. Fork the repository.
+2. Create a feature branch.
+3. Follow the existing code style (PSR-adjacent, no frameworks, PHP 7.4 compatible).
+4. Test on PHP 7.4 and 8.x.
+5. Submit a pull request with a clear description.
 
-Please take the time to review existing issues before submitting your own to
-prevent duplicates.
+If adding database changes, include a migration in `core/classes/Migration.php`.
 
-In addition, thoroughly read through the [Issue Tracker Guide](https://github.com/Core3Project/Core3-CMS/issues/2) to ensure
-your report contains the required information. Incorrect or poorly formed
-reports are wasteful and are subject to deletion.
+## Licence
 
+MIT
 
-# Submitting fixes
+## Credits
 
-Fixes are submitted as pull requests via Github.
-
-# Copyright
-
-License: GPL 2.0
-
-
+Built by [VexxusArts Ltd](https://vexxusarts.com).

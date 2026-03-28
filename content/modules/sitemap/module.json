@@ -1,0 +1,7 @@
+{
+    "name": "Sitemap",
+    "version": "1.0.0",
+    "description": "Auto-generates /sitemap.xml for search engines.",
+    "author": "Core 3 CMS",
+    "default_enabled": "1"
+}

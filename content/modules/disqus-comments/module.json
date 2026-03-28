@@ -1,0 +1,17 @@
+{
+    "name": "Disqus Comments",
+    "version": "1.0.0",
+    "description": "Replace the built-in comment system with Disqus. Disqus handles comment display, moderation, spam filtering, and notifications.",
+    "author": "Core 3 CMS",
+    "default_enabled": "0",
+    "settings": [
+        {
+            "key": "disqus_shortname",
+            "label": "Disqus Shortname",
+            "type": "text",
+            "required": true,
+            "placeholder": "your-site-shortname",
+            "hint": "Your Disqus site shortname. Find it at https://disqus.com/admin → Settings → General."
+        }
+    ]
+}

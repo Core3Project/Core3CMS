@@ -1,0 +1,8 @@
+{
+    "name": "Search",
+    "version": "1.0.0",
+    "description": "Adds site search with a search box widget and /search results page.",
+    "author": "Core 3 CMS",
+    "default_enabled": "1",
+    "settings": []
+}
