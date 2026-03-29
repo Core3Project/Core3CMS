@@ -16,6 +16,10 @@ $_customCss = Setting::get('custom_css', '');
 <link rel="alternate" type="application/rss+xml" title="<?= e($_siteName) ?>" href="<?= url('feed') ?>">
 <?php $_favicon = Setting::get('custom_favicon', ''); if ($_favicon): ?>
 <link rel="icon" href="<?= url('content/uploads/' . e($_favicon)) ?>">
+<?php else: ?>
+<link rel="icon" type="image/svg+xml" href="<?= url('assets/images/favicon.svg') ?>">
+<link rel="icon" type="image/x-icon" href="<?= url('assets/images/favicon.ico') ?>">
+<link rel="apple-touch-icon" href="<?= url('assets/images/apple-touch-icon.png') ?>">
 <?php endif; ?>
 <link rel="stylesheet" href="<?= Theme::asset('style.css') ?>?v=<?= e(Setting::get('cache_version', '0')) ?>">
 <?php if ($_accentColor || $_customCss): ?>

@@ -35,6 +35,8 @@ function adm_header($title = '') {
 <head>
 <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title><?= $title ? e($title) . ' ‹ ' : '' ?>Core 3 CMS</title>
+<link rel="icon" type="image/svg+xml" href="<?= url('assets/images/favicon.svg') ?>">
+<link rel="icon" type="image/x-icon" href="<?= url('assets/images/favicon.ico') ?>">
 <link rel="stylesheet" href="<?= adm('assets/css/admin.css') ?>?v=<?= e(Setting::get('cache_version', '0')) ?>">
 </head>
 <body>

@@ -9,7 +9,10 @@ function Ed(el,field,ph){
     this.tb=document.createElement('div');this.tb.className='c3-toolbar';
     this.ed=document.createElement('div');this.ed.className='c3-editable';
     this.ed.contentEditable=true;this.ed.setAttribute('data-placeholder',ph);
-    this.ed.innerHTML=field.value||'';
+    // strip style/script/link tags from visual display (kept in hidden field)
+    var raw=field.value||'';
+    this.ed.innerHTML=raw.replace(/<style[\s\S]*?<\/style>/gi,'').replace(/<script[\s\S]*?<\/script>/gi,'').replace(/<link[^>]*>/gi,'');
+    this._rawContent=raw;
     this.src=document.createElement('textarea');this.src.className='c3-source';this.src.spellcheck=false;
     this.mode='visual';this.build();
     w.appendChild(this.tb);w.appendChild(this.ed);w.appendChild(this.src);
@@ -78,7 +81,7 @@ Ed.prototype.active=function(){
 };
 Ed.prototype.toggleSrc=function(){
     if(this.mode==='visual'){
-        this.src.value=this.ed.innerHTML.replace(/></g,'>\n<');
+        this.src.value=this.field.value.replace(/></g,'>\n<');
         this.ed.style.display='none';this.src.style.display='block';this.mode='source';this.srcBtn.classList.add('active');
         this.tb.querySelectorAll('button:not(:last-child),select').forEach(function(e){e.disabled=true;e.style.opacity='.3'});
     }else{

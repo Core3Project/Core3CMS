@@ -10,6 +10,15 @@
 define('C3_VERSION', '3.1.0');
 
 if (session_status() === PHP_SESSION_NONE) {
+    // fix misconfigured session save paths on some shared hosts
+    $savePath = session_save_path();
+    if ( ! $savePath || ! is_writable($savePath)) {
+        $tmpPath = sys_get_temp_dir();
+        if (is_writable($tmpPath)) {
+            session_save_path($tmpPath);
+        }
+    }
+    session_set_cookie_params(0, '/', '', (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off'), true);
     session_start();
 }
 

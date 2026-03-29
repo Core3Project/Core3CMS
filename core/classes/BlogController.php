@@ -35,7 +35,12 @@ class BlogController
                 );
 
                 if ($staticPage) {
-                    Theme::render('page', [
+                    // use front-page template if it exists, otherwise page
+                    $template = file_exists(Theme::path() . '/templates/front-page.php')
+                        ? 'front-page'
+                        : 'page';
+
+                    Theme::render($template, [
                         'page'      => $staticPage,
                         'pageTitle' => $staticPage['title'],
                     ]);
@@ -45,6 +50,20 @@ class BlogController
         }
 
         $this->showPosts($page);
+    }
+
+    /**
+     * Display the blog post listing on a designated page
+     *
+     * Called by PageController when the current page is set as
+     * the "Posts page" in Settings → Reading.
+     *
+     * @return void
+     */
+    public function blogPage()
+    {
+        $pageNum = isset($_GET['pg']) ? max(1, (int) $_GET['pg']) : 1;
+        $this->showPosts($pageNum);
     }
 
     /**

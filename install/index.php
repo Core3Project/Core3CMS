@@ -8,12 +8,28 @@ $step = (int)($_GET['step'] ?? 1); $error = '';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && $step === 2) {
     $d = ['host'=>trim($_POST['db_host']??'localhost'),'name'=>trim($_POST['db_name']??''),'user'=>trim($_POST['db_user']??''),'pass'=>$_POST['db_pass']??'','prefix'=>trim($_POST['db_prefix']??'c3_')];
-    try { $pdo = new PDO("mysql:host={$d['host']}",$d['user'],$d['pass'],[PDO::ATTR_ERRMODE=>PDO::ERRMODE_EXCEPTION]); $pdo->exec("CREATE DATABASE IF NOT EXISTS `{$d['name']}` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci"); $_SESSION['c3_db']=$d; header('Location:?step=3'); exit; }
+    try {
+        $pdo = new PDO("mysql:host={$d['host']}",$d['user'],$d['pass'],[PDO::ATTR_ERRMODE=>PDO::ERRMODE_EXCEPTION]);
+        $pdo->exec("CREATE DATABASE IF NOT EXISTS `{$d['name']}` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci");
+        $_SESSION['c3_db'] = $d;
+        // also encode into a token so step 3 works even if sessions fail
+        $dbToken = base64_encode(json_encode($d));
+        header('Location:?step=3&dbt=' . urlencode($dbToken));
+        exit;
+    }
     catch(PDOException $e) { $error = $e->getMessage(); }
 }
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && $step === 3) {
-    if (!isset($_SESSION['c3_db'])) { header('Location:?step=2'); exit; }
-    $d=$_SESSION['c3_db']; $sn=trim($_POST['site_name']??''); $su=rtrim(trim($_POST['site_url']??''),'/');
+    // try session first, fall back to hidden field token
+    if (isset($_SESSION['c3_db'])) {
+        $d = $_SESSION['c3_db'];
+    } elseif (!empty($_POST['dbt'])) {
+        $d = json_decode(base64_decode($_POST['dbt']), true);
+    } else {
+        header('Location:?step=2');
+        exit;
+    }
+    if (!$d || empty($d['name'])) { header('Location:?step=2'); exit; } $sn=trim($_POST['site_name']??''); $su=rtrim(trim($_POST['site_url']??''),'/');
     $au=trim($_POST['admin_user']??''); $ae=trim($_POST['admin_email']??''); $ap=$_POST['admin_pass']??''; $ap2=$_POST['admin_pass2']??'';
     if(!$au||!$ae||!$ap) $error='All fields are required.';
     elseif($ap!==$ap2) $error="Passwords don't match.";
@@ -42,27 +58,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $step === 3) {
             // Generate .htaccess with correct RewriteBase
             $base = rtrim(dirname(dirname($_SERVER['SCRIPT_NAME'])), '/');
             $rewriteBase = $base ? $base . '/' : '/';
-            $htaccess = "# Core 3 CMS — generated during installation\n"
-                . "# This file is required for clean URLs and routing.\n\n"
-                . "Options -Indexes -MultiViews\n"
+            $htaccess = "# Core 3 CMS\n"
+                . "<IfModule mod_rewrite.c>\n"
                 . "RewriteEngine On\n"
                 . "RewriteBase {$rewriteBase}\n\n"
-                . "# Block direct access to core files\n"
-                . "RewriteRule ^core/ - [F,L]\n\n"
-                . "# Block PHP execution in uploads\n"
+                . "RewriteRule ^core/ - [F,L]\n"
                 . "RewriteRule ^content/uploads/.*\\.ph(p[345s]?|tml)$ - [F,L]\n\n"
-                . "# Let the install directory serve itself\n"
-                . "RewriteRule ^install(/.*)?$ - [L]\n\n"
-                . "# Admin: serve real files directly, route the rest\n"
-                . "RewriteCond %{REQUEST_FILENAME} -f\n"
-                . "RewriteRule ^admin/ - [L]\n"
+                . "RewriteRule ^index\\.php$ - [L]\n"
+                . "RewriteRule ^admin/index\\.php$ - [L]\n"
+                . "RewriteRule ^install/ - [L]\n\n"
+                . "RewriteCond %{REQUEST_FILENAME} !-f\n"
                 . "RewriteRule ^admin(/.*)?$ admin/index.php [L,QSA]\n\n"
-                . "# Serve existing files and directories\n"
-                . "RewriteCond %{REQUEST_FILENAME} -f [OR]\n"
-                . "RewriteCond %{REQUEST_FILENAME} -d\n"
-                . "RewriteRule ^ - [L]\n\n"
-                . "# Everything else goes to the front controller\n"
-                . "RewriteRule ^(.*)$ index.php [L,QSA]\n";
+                . "RewriteCond %{REQUEST_FILENAME} !-f\n"
+                . "RewriteRule . index.php [L]\n"
+                . "</IfModule>\n";
             file_put_contents($root.'/.htaccess', $htaccess);
 
             unset($_SESSION['c3_db']); header('Location:?step=4'); exit;
@@ -73,6 +82,7 @@ $proto=(!empty($_SERVER['HTTPS'])&&$_SERVER['HTTPS']!=='off')?'https':'http';
 $detected=$proto.'://'.$_SERVER['HTTP_HOST'].rtrim(dirname(dirname($_SERVER['SCRIPT_NAME'])),'/');
 ?>
 <!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Installation ‹ Core 3 CMS</title>
+<link rel="icon" type="image/svg+xml" href="../assets/images/favicon.svg"><link rel="icon" type="image/x-icon" href="../assets/images/favicon.ico">
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
 body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Oxygen-Sans,Ubuntu,Cantarell,"Helvetica Neue",sans-serif;background:#f0f0f1;color:#1e1e1e;font-size:14px;line-height:1.6;-webkit-font-smoothing:subpixel-antialiased}
@@ -127,10 +137,14 @@ hr{border:none;border-top:1px solid #dcdcde;margin:24px 0}
 <button type="submit" class="btn">Submit</button>
 </form></div></div>
 
-<?php elseif($step===3):?>
+<?php elseif($step===3):
+    // grab the token from the URL to embed in the form
+    $dbToken = isset($_GET['dbt']) ? $_GET['dbt'] : '';
+?>
 <div class="card"><div class="card-bd">
 <p class="intro">Welcome! Just fill in the information below and you'll be on your way.</p>
 <form method="post" action="?step=3">
+<input type="hidden" name="dbt" value="<?= htmlspecialchars($dbToken) ?>">
 <label>Site Title</label><input type="text" name="site_name" value="My Blog" required>
 <label>Site URL</label><input type="text" name="site_url" value="<?=htmlspecialchars($detected)?>" required><p class="hint">No trailing slash.</p>
 <hr>

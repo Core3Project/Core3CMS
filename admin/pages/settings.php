@@ -4,8 +4,13 @@ Auth::guard('admin');
 $tab = $_GET['tab'] ?? 'general';
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && Auth::checkCsrf($_POST['_csrf'] ?? '')) {
     foreach ($_POST['s'] ?? [] as $k => $v) Setting::set($k, trim($v));
-    foreach (['comments_enabled','comments_moderation','registration_enabled'] as $cb) {
-        if (!isset($_POST['s'][$cb])) Setting::set($cb, '0');
+    if ($tab === 'comments') {
+        foreach (['comments_enabled','comments_moderation'] as $cb) {
+            if (!isset($_POST['s'][$cb])) Setting::set($cb, '0');
+        }
+    }
+    if ($tab === 'users') {
+        if (!isset($_POST['s']['registration_enabled'])) Setting::set('registration_enabled', '0');
     }
     if (isset($_POST['test_email'])) {
         $to = trim($_POST['test_to'] ?? '');

@@ -12,6 +12,8 @@ $siteName = Setting::get('site_name', 'Core 3 CMS');
 ?>
 <!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Log In &lsaquo; <?= e($siteName) ?> &#8212; Core 3 CMS</title>
+<link rel="icon" type="image/svg+xml" href="<?= url('assets/images/favicon.svg') ?>">
+<link rel="icon" type="image/x-icon" href="<?= url('assets/images/favicon.ico') ?>">
 <link rel="stylesheet" href="<?= $adminBase ?>/assets/css/admin.css?v=<?= e(Setting::get('cache_version', '0')) ?>">
 </head><body class="auth-page">
 <div class="auth-logo"><img src="<?= url('assets/images/logo.svg') ?>" alt="Core 3 CMS"></div>

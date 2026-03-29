@@ -13,6 +13,22 @@ $recent = DB::rows("SELECT p.*,u.display_name as author FROM {$t}posts p LEFT JO
 adm_header('Dashboard');
 ?>
 <div class="action-bar"><h1>Dashboard</h1></div>
+<?php
+// built-in update check
+if (Auth::isAdmin()) {
+    $update = Updater::check();
+    if ($update) {
+        $latestVersion = ltrim($update['tag'], 'v');
+        $releaseDate = isset($update['date']) ? formatDate($update['date']) : '';
+        echo '<div class="alert alert-info" style="margin-bottom:16px">'
+            . '<strong>Core 3 CMS ' . e($latestVersion) . '</strong> is available. '
+            . 'You are running ' . e(C3_VERSION) . '. '
+            . ($releaseDate ? 'Released ' . e($releaseDate) . '. ' : '')
+            . '<a href="' . e($update['url']) . '" target="_blank" rel="noopener">View release &rarr;</a>'
+            . '</div>';
+    }
+}
+?>
 <?= Modules::html('admin_dashboard_before') ?>
 <div class="stats">
 <?php foreach ($stats as $l => $n): ?>
@@ -38,7 +54,11 @@ adm_header('Dashboard');
 <a href="<?= adm('comments') ?>" class="btn btn-outline" style="justify-content:center">Moderate Comments</a>
 </div></div>
 <div class="panel"><div class="panel-hd">At a Glance</div><div class="panel-bd" style="font-size:13px;color:var(--muted);line-height:2">
+<?php if (Auth::isAdmin() && Updater::isUpToDate()): ?>
+<span style="color:#00a32a">&#10003;</span> Core 3 CMS v<?= C3_VERSION ?> — up to date<br>
+<?php else: ?>
 Core 3 CMS v<?= C3_VERSION ?><br>
+<?php endif; ?>
 PHP <?= PHP_VERSION ?><br>
 Theme: <?= e(Setting::get('theme', 'default')) ?><br>
 Modules: <?= count(Modules::loaded()) ?> active
